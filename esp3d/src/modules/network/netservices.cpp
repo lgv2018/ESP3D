@@ -3,18 +3,18 @@
 
   Copyright (c) 2014 Luc Lebosse. All rights reserved.
 
-  This library is free software; you can redistribute it and/or
+  This code is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
   License as published by the Free Software Foundation; either
   version 2.1 of the License, or (at your option) any later version.
 
-  This library is distributed in the hope that it will be useful,
+  This code is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
 
   You should have received a copy of the GNU Lesser General Public
-  License along with this library; if not, write to the Free Software
+  License along with This code; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
@@ -87,7 +87,7 @@ bool NetServices::begin()
     bool res = true;
     _started = false;
     String hostname = Settings_ESP3D::read_string(ESP_HOSTNAME);
-    ESP3DOutput output(ESP_ALL_CLIENTS);
+    ESP3DOutput output(ESP_SERIAL_CLIENT);
     end();
 #ifdef TIMESTAMP_FEATURE
     if (WiFi.getMode() != WIFI_AP) {
@@ -96,7 +96,7 @@ bool NetServices::begin()
                 output.printERROR("Failed contact time servers!");
             }
         } else {
-            String tmp = "Time set :";
+            String tmp = "Current time :";
             tmp+=timeserver.current_time();
             output.printMSG(tmp.c_str());
         }
@@ -241,7 +241,9 @@ bool NetServices::begin()
 #ifdef MDNS_FEATURE
     if(WiFi.getMode() != WIFI_AP) {
         // Add service to MDNS-SD
-        MDNS.addService("http", "tcp", 80);
+        MDNS.addService("http", "tcp", HTTP_Server::port());
+        // TODO add TXT records
+        //MDNS.addServiceTxt("http", "tcp", Key, value);
     }
 #endif //MDNS_FEATURE
 #ifdef SSDP_FEATURE
@@ -254,13 +256,13 @@ bool NetServices::begin()
         SSDP.setName (hostname.c_str());
         SSDP.setURL ("/");
         SSDP.setDeviceType ("upnp:rootdevice");
-        // SSDP.setSerialNumber (stmp.c_str());
+        SSDP.setSerialNumber (stmp.c_str());
         //Any customization could be here
-        //  SSDP.setModelName (ESP_MODEL_NAME);
-        //  SSDP.setModelURL (ESP_MODEL_URL);
-        //   SSDP.setModelNumber (ESP_MODEL_NUMBER);
-        //   SSDP.setManufacturer (ESP_MANUFACTURER_NAME);
-        //   SSDP.setManufacturerURL (ESP_MANUFACTURER_URL);
+        SSDP.setModelName (ESP_MODEL_NAME);
+        SSDP.setModelURL (ESP_MODEL_URL);
+        SSDP.setModelNumber (ESP_MODEL_NUMBER);
+        SSDP.setManufacturer (ESP_MANUFACTURER_NAME);
+        SSDP.setManufacturerURL (ESP_MANUFACTURER_URL);
         SSDP.begin();
         stmp = "SSDP started with '" + hostname + "'";
         output.printMSG(stmp.c_str());
@@ -305,12 +307,17 @@ void NetServices::end()
 #endif //ARDUINO_ARCH_ESP32
 #endif //SSDP_FEATURE
 #ifdef MDNS_FEATURE
-#if defined(ARDUINO_ARCH_ESP32)
     if(WiFi.getMode() != WIFI_AP) {
+#if defined(ARDUINO_ARCH_ESP8266)
+        String hostname = Settings_ESP3D::read_string(ESP_HOSTNAME);
+        hostname.toLowerCase();
+        MDNS.removeService(hostname.c_str(),"http", "tcp");
+#endif // ARDUINO_ARCH_ESP8266
+#if defined(ARDUINO_ARCH_ESP32)
         mdns_service_remove("_http", "_tcp");
+#endif // ARDUINO_ARCH_ESP32
         MDNS.end();
     }
-#endif // ARDUINO_ARCH_ESP32
 #endif //MDNS_FEATURE
 
 #ifdef OTA_FEATURE

@@ -3,18 +3,18 @@
 
  Copyright (c) 2014 Luc Lebosse. All rights reserved.
 
- This library is free software; you can redistribute it and/or
+ This code is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
  License as published by the Free Software Foundation; either
  version 2.1 of the License, or (at your option) any later version.
 
- This library is distributed in the hope that it will be useful,
+ This code is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  Lesser General Public License for more details.
 
  You should have received a copy of the GNU Lesser General Public
- License along with this library; if not, write to the Free Software
+ License along with This code; if not, write to the Free Software
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #include "../../../include/esp3d_config.h"
@@ -39,6 +39,9 @@ void HTTP_Server::handle_web_command ()
     if (_webserver->hasArg ("cmd")) {
         cmd = _webserver->arg ("cmd");
         ESP3DOutput  output(_webserver);
+        if(!cmd.endsWith("\n")) {
+            cmd+="\n";    //need to validate command
+        }
         esp3d_commands.process((uint8_t*)cmd.c_str(), cmd.length(), &output, auth_level);
     } else {
         _webserver->send (400, "text/plain", "Invalid command");

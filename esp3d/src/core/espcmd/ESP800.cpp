@@ -3,18 +3,18 @@
 
  Copyright (c) 2014 Luc Lebosse. All rights reserved.
 
- This library is free software; you can redistribute it and/or
+ This code is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
  License as published by the Free Software Foundation; either
  version 2.1 of the License, or (at your option) any later version.
 
- This library is distributed in the hope that it will be useful,
+ This code is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  Lesser General Public License for more details.
 
  You should have received a copy of the GNU Lesser General Public
- License along with this library; if not, write to the Free Software
+ License along with This code; if not, write to the Free Software
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #include "../../include/esp3d_config.h"
@@ -107,7 +107,7 @@ bool Commands::ESP800(const char* cmd_params, level_authenticate_type auth_type,
     } else if (Settings_ESP3D::GetSDDevice() == ESP_SHARED_SD) {
         output->print("shared");
     } else {
-        output->print("None");
+        output->print("none");
     }
     if(plain) {
         output->printLN("");
@@ -235,7 +235,7 @@ bool Commands::ESP800(const char* cmd_params, level_authenticate_type auth_type,
 #if defined(FILESYSTEM_FEATURE)
     output->print(ESP_FileSystem::FilesystemName());
 #else
-    output->print("None");
+    output->print("none");
 #endif //FILESYSTEM_FEATURE
     if(plain) {
         output->printLN("");
@@ -251,7 +251,7 @@ bool Commands::ESP800(const char* cmd_params, level_authenticate_type auth_type,
 #ifdef TIMESTAMP_FEATURE
     output->print(tparm.c_str());
 #else
-    output->print("None");
+    output->print("none");
 #endif //TIMESTAMP_FEATURE
     if(plain) {
         output->printLN("");

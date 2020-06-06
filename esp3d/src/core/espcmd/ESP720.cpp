@@ -3,18 +3,18 @@
 
  Copyright (c) 2014 Luc Lebosse. All rights reserved.
 
- This library is free software; you can redistribute it and/or
+ This code is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
  License as published by the Free Software Foundation; either
  version 2.1 of the License, or (at your option) any later version.
 
- This library is distributed in the hope that it will be useful,
+ This code is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  Lesser General Public License for more details.
 
  You should have received a copy of the GNU Lesser General Public
- License along with this library; if not, write to the Free Software
+ License along with This code; if not, write to the Free Software
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #include "../../include/esp3d_config.h"
@@ -24,6 +24,10 @@
 #include "../settings_esp3d.h"
 #include "../../modules/authentication/authentication_service.h"
 #include "../../modules/filesystem/esp_filesystem.h"
+#ifdef FILESYSTEM_TIMESTAMP_FEATURE
+#include "../../modules/time/time_server.h"
+#endif //FILESYSTEM_TIMESTAMP_FEATURE
+
 //List ESP Filesystem
 //[ESP720]<Root> pwd=<admin password>
 bool Commands::ESP720(const char* cmd_params, level_authenticate_type auth_type, ESP3DOutput * output)
@@ -75,9 +79,7 @@ bool Commands::ESP720(const char* cmd_params, level_authenticate_type auth_type,
                     output->print(ESP_FileSystem::formatBytes(sub.size()).c_str());
                     output->print(" \t");
 #ifdef FILESYSTEM_TIMESTAMP_FEATURE
-                    time_t t = sub.getLastWrite();
-                    struct tm * tmstruct = localtime(&t);
-                    output->printf("%d-%02d-%02d %02d:%02d:%02d",(tmstruct->tm_year)+1900,( tmstruct->tm_mon)+1, tmstruct->tm_mday,tmstruct->tm_hour, tmstruct->tm_min, tmstruct->tm_sec);
+                    output->print(timeserver.current_time(sub.getLastWrite()));
                     output->print(" \t");
 #endif //FILESYSTEM_TIMESTAMP_FEATURE              
                     output->printLN("");

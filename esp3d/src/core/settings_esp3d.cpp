@@ -3,18 +3,18 @@
 
   Copyright (c) 2014 Luc Lebosse. All rights reserved.
 
-  This library is free software; you can redistribute it and/or
+  This code is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
   License as published by the Free Software Foundation; either
   version 2.1 of the License, or (at your option) any later version.
 
-  This library is distributed in the hope that it will be useful,
+  This code is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
 
   You should have received a copy of the GNU Lesser General Public
-  License along with this library; if not, write to the Free Software
+  License along with This code; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
@@ -26,7 +26,7 @@
 #if ESP_SAVE_SETTINGS == SETTINGS_IN_EEPROM
 #include <EEPROM.h>
 //EEPROM SIZE (Up to 4096)
-#define EEPROM_SIZE		2048 //max is 2048
+#define EEPROM_SIZE     2048 //max is 2048
 #endif //SETTINGS_IN_EEPROM
 
 #if defined (WIFI_FEATURE) || defined(ETH_FEATURE)
@@ -51,19 +51,23 @@
 #define MAX_LOCAL_PASSWORD_LENGTH   20
 #define MIN_LOCAL_PASSWORD_LENGTH   1
 #define MAX_VERSION_LENGTH          7 //ESP3DXX
-#define MAX_BOOT_DELAY				40000
-#define MIN_BOOT_DELAY				0
+#define MAX_BOOT_DELAY              40000
+#define MIN_BOOT_DELAY              0
 #define MIN_NOTIFICATION_TOKEN_LENGTH 0
 #define MIN_NOTIFICATION_SETTINGS_LENGTH 0
 #define MAX_NOTIFICATION_TOKEN_LENGTH 63
-#define MAX_NOTIFICATION_SETTINGS_LENGTH 127
+#define MAX_NOTIFICATION_SETTINGS_LENGTH 128
 #define MAX_SERVER_ADDRESS_LENGTH   128
 #define MIN_SERVER_ADDRESS_LENGTH   0
 
 
 //default byte values
 #ifdef WIFI_FEATURE
+#if defined(STATION_WIFI_SSID) && defined(STATION_WIFI_PASSWORD)
+#define DEFAULT_ESP_RADIO_MODE  ESP_WIFI_STA
+#else
 #define DEFAULT_ESP_RADIO_MODE  ESP_WIFI_AP
+#endif //STATION_WIFI_SSID && STATION_WIFI_PASSWORD
 #else //WIFI_FEATURE
 #ifdef BLUETOOTH_FEATURE
 #define DEFAULT_ESP_RADIO_MODE  ESP_BT
@@ -124,7 +128,7 @@
 #define DEFAULT_CAMERA_PORT     9600L
 #define DEFAULT_TELNET_PORT     23L
 #define DEFAULT_DHT_INTERVAL    30000L
-#define DEFAULT_BOOT_DELAY	    10000L
+#define DEFAULT_BOOT_DELAY      10000L
 #define DEFAULT_CALIBRATION_VALUE 0
 #define DEFAULT_CALIBRATION_DONE 0
 
@@ -132,8 +136,13 @@
 //default string values
 const char DEFAULT_AP_SSID []   =        "ESP3D";
 const char DEFAULT_AP_PASSWORD []  =     "12345678";
+#if defined(STATION_WIFI_SSID) && defined(STATION_WIFI_PASSWORD)
+const char DEFAULT_STA_SSID []   =       STATION_WIFI_SSID;
+const char DEFAULT_STA_PASSWORD []  =    STATION_WIFI_PASSWORD;
+#else
 const char DEFAULT_STA_SSID []   =       "ESP3D";
 const char DEFAULT_STA_PASSWORD []  =    "12345678";
+#endif //STATION_WIFI_SSID && STATION_WIFI_PASSWORD
 #endif //WIFI_FEATURE
 #if defined (BLUETOOTH_FEATURE) || defined (WIFI_FEATURE) ||defined (ETH_FEATURE)
 const char DEFAULT_HOSTNAME []   =       "esp3d";
@@ -144,11 +153,11 @@ const char DEFAULT_ADMIN_PWD []   =      "admin";
 const char DEFAULT_USER_PWD []   =       "user";
 #endif //AUTHENTICATION_FEATURE
 #ifdef TIMESTAMP_FEATURE
-const char DEFAULT_TIME_SERVER1 []   =	"1.pool.ntp.org";
-const char DEFAULT_TIME_SERVER2 []   =	"2.pool.ntp.org";
-const char DEFAULT_TIME_SERVER3 []   =	"0.pool.ntp.org";
+const char DEFAULT_TIME_SERVER1 []   =  "1.pool.ntp.org";
+const char DEFAULT_TIME_SERVER2 []   =  "2.pool.ntp.org";
+const char DEFAULT_TIME_SERVER3 []   =  "0.pool.ntp.org";
 #endif //TIMESTAMP_FEATURE
-const char DEFAULT_SETTINGS_VERSION []  =	"ESP3D";
+const char DEFAULT_SETTINGS_VERSION []  =   "ESP3D";
 
 #if defined (WIFI_FEATURE) ||defined (ETH_FEATURE)
 //default IP values
@@ -216,7 +225,7 @@ const char* Settings_ESP3D::GetFirmwareTargetShortName()
     } else if ( _FirmwareTarget == GRBL) {
         response = F ("grbl");
     } else {
-        response = F ("???");
+        response = F ("unknown");
     }
     return response.c_str();
 }
@@ -524,7 +533,7 @@ uint8_t Settings_ESP3D::get_max_byte(int pos)
     return res;
 }
 
-uint8_t Settings_ESP3D::get_min_byte(int pos)
+int8_t Settings_ESP3D::get_min_byte(int pos)
 {
     uint8_t res;
     switch(pos) {

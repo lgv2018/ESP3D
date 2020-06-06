@@ -3,18 +3,18 @@
 
   Copyright (c) 2014 Luc Lebosse. All rights reserved.
 
-  This library is free software; you can redistribute it and/or
+  This code is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
   License as published by the Free Software Foundation; either
   version 2.1 of the License, or (at your option) any later version.
 
-  This library is distributed in the hope that it will be useful,
+  This code is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
 
   You should have received a copy of the GNU Lesser General Public
-  License along with this library; if not, write to the Free Software
+  License along with This code; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
@@ -88,7 +88,7 @@ bool TimeServer::begin()
     }
 #endif //ETH_FEATURE
     if (!is_internet_time()) {
-        return false;
+        return true;
     }
     s1 = Settings_ESP3D::read_string (ESP_TIME_SERVER1);
     s2 = Settings_ESP3D::read_string (ESP_TIME_SERVER2);
@@ -125,13 +125,6 @@ const char * TimeServer::current_time(time_t t)
         time(&now);
         localtime_r(&now, &tmstruct);
     } else {
-        /* struct tm * tmstructtmp = localtime(&t);
-         tmstruct.tm_year = tmstructtmp->tm_year;
-         tmstruct.tm_mon = tmstructtmp->tm_mon;
-         tmstruct.tm_mday = tmstructtmp->tm_mday;
-         tmstruct.tm_hour = tmstructtmp->tm_hour;
-         tmstruct.tm_min = tmstructtmp->tm_min;
-         tmstruct.tm_sec = tmstructtmp->tm_sec;*/
         localtime_r(&t, &tmstruct);
     }
     stmp = String((tmstruct.tm_year)+1900) + "-";
@@ -231,8 +224,6 @@ bool TimeServer::setTime(const char* stime)
         return false;
     }
     tmstruct.tm_isdst = 0; //ignore dst
-    //reset servers, time zone and dst
-    configTime (0, 0,"", "", "");
     tmstruct.tm_sec = substmp.toInt();
     time_val.tv_sec = mktime (&tmstruct);
     if(settimeofday(&time_val,0) == -1) {

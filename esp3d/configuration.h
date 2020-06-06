@@ -3,23 +3,36 @@
 
   Copyright (c) 2014 Luc Lebosse. All rights reserved.
 
-  This library is free software; you can redistribute it and/or
+  This code is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
   License as published by the Free Software Foundation; either
   version 2.1 of the License, or (at your option) any later version.
 
-  This library is distributed in the hope that it will be useful,
+  This code is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
 
   You should have received a copy of the GNU Lesser General Public
-  License along with this library; if not, write to the Free Software
+  License along with This code; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #ifndef _CONFIGURATION_H
 #define _CONFIGURATION_H
+
 //FEATURES - comment to disable //////////////////////////////////////////////////////////
+
+//WiFi setup station as default, use AP mode first if not done
+//Note: need both defined to enable it
+//#define STATION_WIFI_SSID "*********"
+//#define STATION_WIFI_PASSWORD "*********"
+//you can also use a different config file for SSID/password
+//this file is ignored by github
+#if defined __has_include
+#  if __has_include ("myconfig.h")
+#    include "myconfig.h"
+#  endif
+#endif
 
 //SERIAL_COMMAND_FEATURE: allow to send command by serial
 #define SERIAL_COMMAND_FEATURE
@@ -43,12 +56,12 @@
 #define TELNET_FEATURE
 
 //WS_DATA_FEATURE: allow to connect serial from Websocket
-#define WS_DATA_FEATURE
+//#define WS_DATA_FEATURE
 
 //DISPLAY_DEVICE: allow screen output
-//OLED_I2C_SSD1306    		1
-//OLED_I2C_SSDSH1106  		2
-//TFT_SPI_ILI9341_320X240 	3
+//OLED_I2C_SSD1306          1
+//OLED_I2C_SSDSH1106        2
+//TFT_SPI_ILI9341_320X240   3
 //TFT_SPI_ILI9488_480X320 4
 //#define DISPLAY_DEVICE TFT_SPI_ILI9488_480X320
 
@@ -63,24 +76,23 @@
 //BUZZER_DEVICE: allow to connect passive buzzer
 //#define BUZZER_DEVICE
 
-
 #if defined (DISPLAY_DEVICE)
 //for ILI9143 edit User_Setup.h of TFT_eSPI library
 #if (DISPLAY_DEVICE == OLED_I2C_SSD1306) || (DISPLAY_DEVICE == OLED_I2C_SSDSH1106)
 #define DISPLAY_I2C_PIN_SDA         4
 #define DISPLAY_I2C_PIN_SCL         15
 #define DISPLAY_I2C_PIN_RST         16 //comment if not applicable
-#define DISPLAY_I2C_ADDR	        0x3c
+#define DISPLAY_I2C_ADDR            0x3c
 #endif //(DISPLAY_DEVICE == OLED_I2C_SSD1306) || (DISPLAY_DEVICE == OLED_I2C_SSDSH1106)
 #define DISPLAY_FLIP_VERTICALY      1 //comment to disable
 #if (DISPLAY_DEVICE == TFT_SPI_ILI9341_320X240) || (DISPLAY_DEVICE == TFT_SPI_ILI9488_480X320)
-#define DISPLAY_TOUCH_DRIVER		XPT2046_SPI
+#define DISPLAY_TOUCH_DRIVER        XPT2046_SPI
 #define DISPLAY_LED_PIN             33  //-1 if none
 #endif //(DISPLAY_DEVICE == TFT_SPI_ILI9341_320X240) || (DISPLAY_DEVICE == TFT_SPI_ILI9488_480X320)
 #endif //DISPLAY_DEVICE
 
 //INPUT_DEVICE: allow input
-//ROTARY_ENCODER   		1
+//ROTARY_ENCODER        1
 //#define INPUT_DEVICE ROTARY_ENCODER
 
 //DHT_DEVICE: send update of temperature / humidity based on DHT 11/22
@@ -107,7 +119,7 @@
 //ESP_SD_NATIVE               1 //esp32 / esp8266
 //ESP_SDIO                    2 //esp32 only
 //ESP_SDFAT                   3 //esp8266 (same as native) / esp32
-#define SD_DEVICE    ESP_SDFAT
+//#define SD_DEVICE    ESP_SDFAT
 
 //pin if reader has insert detection feature
 //let -1 or comment if none
@@ -135,10 +147,10 @@
 #define DIRECT_PIN_FEATURE
 
 //TIMESTAMP_FEATURE: set time system
-//#define TIMESTAMP_FEATURE
+#define TIMESTAMP_FEATURE
 
 //FILESYSTEM_TIMESTAMP_FEATURE: display last write time from Flash files
-//#define FILESYSTEM_TIMESTAMP_FEATURE
+#define FILESYSTEM_TIMESTAMP_FEATURE
 
 //FILESYSTEM_TIMESTAMP_FEATURE:display last write time from SD files
 //#define SD_TIMESTAMP_FEATURE
@@ -162,6 +174,13 @@
 
 //NOTIFICATION_FEATURE : allow to push notifications
 #define NOTIFICATION_FEATURE
+
+//For ESP8266 Only, it define which secure client to use AXTls or BearSSL
+//#define USING_AXTLS
+
+//if not using AXTLS need to decrease size of packet to not be OOM
+#define BEARSSL_MFLN_SIZE   512
+#define BEARSSL_MFLN_SIZE_FALLBACK  4096
 
 //CAMERA_DEVICE: Enable the support of connected camera
 //CAMERA_MODEL_CUSTOM           0 //Edit the pins in include/pins.h

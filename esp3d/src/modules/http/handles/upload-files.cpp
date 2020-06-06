@@ -3,18 +3,18 @@
 
  Copyright (c) 2014 Luc Lebosse. All rights reserved.
 
- This library is free software; you can redistribute it and/or
+ This code is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
  License as published by the Free Software Foundation; either
  version 2.1 of the License, or (at your option) any later version.
 
- This library is distributed in the hope that it will be useful,
+ This code is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  Lesser General Public License for more details.
 
  You should have received a copy of the GNU Lesser General Public
- License along with this library; if not, write to the Free Software
+ License along with This code; if not, write to the Free Software
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #include "../../../include/esp3d_config.h"
@@ -99,6 +99,7 @@ void HTTP_Server::FSFileupload ()
                 }
                 //Upload end
             } else if(upload.status == UPLOAD_FILE_END) {
+                log_esp3d("upload end");
                 //check if file is still open
                 if(fsUploadFile) {
                     //close it
@@ -109,7 +110,9 @@ void HTTP_Server::FSFileupload ()
                     uint32_t filesize = fsUploadFile.size();
                     _upload_status = UPLOAD_STATUS_SUCCESSFUL;
                     if (_webserver->hasArg (sizeargname.c_str()) ) {
+                        log_esp3d("Size check: %s vs %s", _webserver->arg (sizeargname.c_str()).c_str(), String(filesize).c_str());
                         if (_webserver->arg (sizeargname.c_str()) != String(filesize)) {
+                            log_esp3d("Size Error");
                             _upload_status = UPLOAD_STATUS_FAILED;
                             pushError(ESP_ERROR_SIZE, "File upload failed");
                         }
@@ -119,6 +122,7 @@ void HTTP_Server::FSFileupload ()
                     }
                 } else {
                     //we have a problem set flag UPLOAD_STATUS_FAILED
+                    log_esp3d("Close Error");
                     _upload_status=UPLOAD_STATUS_FAILED;
                     pushError(ESP_ERROR_FILE_CLOSE, "File close failed");
                 }

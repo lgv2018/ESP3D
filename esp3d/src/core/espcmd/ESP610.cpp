@@ -3,18 +3,18 @@
 
  Copyright (c) 2014 Luc Lebosse. All rights reserved.
 
- This library is free software; you can redistribute it and/or
+ This code is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
  License as published by the Free Software Foundation; either
  version 2.1 of the License, or (at your option) any later version.
 
- This library is distributed in the hope that it will be useful,
+ This code is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  Lesser General Public License for more details.
 
  You should have received a copy of the GNU Lesser General Public
- License along with this library; if not, write to the Free Software
+ License along with This code; if not, write to the Free Software
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #include "../../include/esp3d_config.h"
@@ -44,7 +44,7 @@ bool Commands::ESP610(const char* cmd_params, level_authenticate_type auth_type,
     if (parameter.length() == 0) {
         uint8_t Ntype =  Settings_ESP3D::read_byte(ESP_NOTIFICATION_TYPE);
         static String tmp;
-        tmp = (Ntype == ESP_PUSHOVER_NOTIFICATION)?"PUSHOVER":(Ntype == ESP_EMAIL_NOTIFICATION)?"EMAIL":(Ntype == ESP_LINE_NOTIFICATION)?"LINE":"NONE";
+        tmp = (Ntype == ESP_PUSHOVER_NOTIFICATION)?"PUSHOVER":(Ntype == ESP_EMAIL_NOTIFICATION)?"EMAIL":(Ntype == ESP_LINE_NOTIFICATION)?"LINE":(Ntype == ESP_TELEGRAM_NOTIFICATION)?"TELEGRAM":"NONE";
         tmp+= " ";
         tmp+= Settings_ESP3D::read_string(ESP_NOTIFICATION_SETTINGS);
         output->printMSG (tmp.c_str());
@@ -63,6 +63,8 @@ bool Commands::ESP610(const char* cmd_params, level_authenticate_type auth_type,
                 Ntype = ESP_EMAIL_NOTIFICATION;
             } else if (parameter == "LINE") {
                 Ntype = ESP_LINE_NOTIFICATION;
+            } else if (parameter == "TELEGRAM") {
+                Ntype = ESP_TELEGRAM_NOTIFICATION;
             } else {
                 output->printERROR("Only NONE, PUSHOVER, EMAIL, LINE are supported!");
                 return false;

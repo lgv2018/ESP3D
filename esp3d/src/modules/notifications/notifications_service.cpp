@@ -3,18 +3,18 @@
 
   Copyright (c) 2014 Luc Lebosse. All rights reserved.
 
-  This library is free software; you can redistribute it and/or
+  This code is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
   License as published by the Free Software Foundation; either
   version 2.1 of the License, or (at your option) any later version.
 
-  This library is distributed in the hope that it will be useful,
+  This code is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
 
   You should have received a copy of the GNU Lesser General Public
-  License along with this library; if not, write to the Free Software
+  License along with This code; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 //Inspired by following sources
@@ -27,6 +27,8 @@
 //* Email:
 // - https://github.com/CosmicBoris/ESP8266SMTP
 // - https://www.electronicshub.org/send-an-email-using-esp8266/
+//* Telegram
+// - https://medium.com/@xabaras/sending-a-message-to-a-telegram-channel-the-easy-way-eb0a0b32968
 
 #include "../../include/esp3d_config.h"
 #ifdef NOTIFICATION_FEATURE
@@ -36,7 +38,6 @@
 #include "../network/netconfig.h"
 
 #if defined( ARDUINO_ARCH_ESP8266)
-#define USING_AXTLS
 #if defined(USING_AXTLS)
 #include "WiFiClientSecureAxTLS.h"
 using namespace axTLS;
@@ -56,11 +57,15 @@ typedef WiFiClientSecure TSecureClient;
 
 #define PUSHOVERTIMEOUT 5000
 #define PUSHOVERSERVER "api.pushover.net"
-#define PUSHOVERPORT	443
+#define PUSHOVERPORT    443
 
 #define LINETIMEOUT 5000
 #define LINESERVER "notify-api.line.me"
-#define LINEPORT	443
+#define LINEPORT    443
+
+#define TELEGRAMTIMEOUT 5000
+#define TELEGRAMSERVER "api.telegram.org"
+#define TELEGRAMPORT    443
 
 #define EMAILTIMEOUT 5000
 
@@ -138,20 +143,23 @@ const char * NotificationsService::getTypeString()
 {
     switch(_notificationType) {
     case ESP_PUSHOVER_NOTIFICATION:
-        return "Pushover";
+        return "pushover";
     case ESP_EMAIL_NOTIFICATION:
-        return "Email";
+        return "email";
     case ESP_LINE_NOTIFICATION:
-        return "Line";
+        return "line";
+    case ESP_TELEGRAM_NOTIFICATION:
+        return "telegram";
     default:
         break;
     }
-    return "None";
+    return "none";
 }
 
 bool NotificationsService::sendMSG(const char * title, const char * message)
 {
     if(!_started) {
+        log_esp3d("Error notification not started");
         return false;
     }
     if (!((strlen(title) == 0) && (strlen(message) == 0))) {
@@ -164,6 +172,9 @@ bool NotificationsService::sendMSG(const char * title, const char * message)
             break;
         case ESP_LINE_NOTIFICATION :
             return sendLineMSG(title,message);
+            break;
+        case ESP_TELEGRAM_NOTIFICATION :
+            return sendTelegramMSG(title,message);
             break;
         default:
             break;
@@ -184,6 +195,13 @@ bool NotificationsService::sendPushoverMSG(const char * title, const char * mess
 #pragma GCC diagnostic pop
 #if defined(ARDUINO_ARCH_ESP8266) && !defined(USING_AXTLS)
     Notificationclient.setInsecure();
+    if (Notificationclient.probeMaxFragmentLength(_serveraddress.c_str(), _port, BEARSSL_MFLN_SIZE)) {
+        log_esp3d("Handshake success");
+        Notificationclient.setBufferSizes(BEARSSL_MFLN_SIZE, 512);
+    } else {
+        log_esp3d("Handshake failed");
+        Notificationclient.setBufferSizes(BEARSSL_MFLN_SIZE_FALLBACK, 512);
+    }
 #endif //ARDUINO_ARCH_ESP8266 && !USING_AXTLS
     if (!Notificationclient.connect(_serveraddress.c_str(), _port)) {
         log_esp3d("Error connecting  server %s:%d", _serveraddress.c_str(), _port);
@@ -212,6 +230,53 @@ bool NotificationsService::sendPushoverMSG(const char * title, const char * mess
     Notificationclient.stop();
     return res;
 }
+
+//Telegram
+bool NotificationsService::sendTelegramMSG(const char * title, const char * message)
+{
+    String data;
+    String postcmd;
+    bool res;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+    TSecureClient Notificationclient;
+#pragma GCC diagnostic pop
+#if defined(ARDUINO_ARCH_ESP8266) && !defined(USING_AXTLS)
+    Notificationclient.setInsecure();
+    if (Notificationclient.probeMaxFragmentLength(_serveraddress.c_str(), _port, BEARSSL_MFLN_SIZE)) {
+        log_esp3d("Handshake success");
+        Notificationclient.setBufferSizes(BEARSSL_MFLN_SIZE, 512);
+    } else {
+        log_esp3d("Handshake failed");
+        Notificationclient.setBufferSizes(BEARSSL_MFLN_SIZE_FALLBACK, 512);
+    }
+#endif //ARDUINO_ARCH_ESP8266 && !USING_AXTLS
+    if (!Notificationclient.connect(_serveraddress.c_str(), _port)) {
+        log_esp3d("Error connecting  server %s:%d", _serveraddress.c_str(), _port);
+        return false;
+    }
+    (void)title;
+    //build url for get
+    data = "chat_id=";
+    data += _token2;
+    data += "&text=";
+    data += message;
+
+    //build post query
+    postcmd  = "POST /bot";
+    postcmd +=_token1;
+    postcmd += "/sendMessage HTTP/1.1\r\nHost: api.telegram.org\r\nConnection: close\r\nContent-Type: application/x-www-form-urlencoded\r\nCache-Control: no-cache\r\nUser-Agent: ESP3D\r\nAccept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\nContent-Length: ";
+    postcmd  += data.length();
+    postcmd  +="\r\n\r\n";
+    postcmd  +=data;
+    log_esp3d("Query: %s", postcmd.c_str());
+    //send query
+    Notificationclient.print(postcmd);
+    res = Wait4Answer(Notificationclient, "{", "\"ok\":true",  TELEGRAMTIMEOUT);
+    Notificationclient.stop();
+    return res;
+}
+
 bool NotificationsService::sendEmailMSG(const char * title, const char * message)
 {
 #pragma GCC diagnostic push
@@ -220,6 +285,13 @@ bool NotificationsService::sendEmailMSG(const char * title, const char * message
 #pragma GCC diagnostic pop
 #if defined(ARDUINO_ARCH_ESP8266) && !defined(USING_AXTLS)
     Notificationclient.setInsecure();
+    if (Notificationclient.probeMaxFragmentLength(_serveraddress.c_str(), _port, BEARSSL_MFLN_SIZE)) {
+        log_esp3d("Handshake success");
+        Notificationclient.setBufferSizes(BEARSSL_MFLN_SIZE, 512);
+    } else {
+        log_esp3d("Handshake failed");
+        Notificationclient.setBufferSizes(BEARSSL_MFLN_SIZE_FALLBACK, 512);
+    }
 #endif //ARDUINO_ARCH_ESP8266 && !USING_AXTLS
     log_esp3d("Connect to server");
     if (!Notificationclient.connect(_serveraddress.c_str(), _port)) {
@@ -316,6 +388,13 @@ bool NotificationsService::sendLineMSG(const char * title, const char * message)
 #pragma GCC diagnostic pop
 #if defined(ARDUINO_ARCH_ESP8266) && !defined(USING_AXTLS)
     Notificationclient.setInsecure();
+    if (Notificationclient.probeMaxFragmentLength(_serveraddress.c_str(), _port, BEARSSL_MFLN_SIZE)) {
+        log_esp3d("Handshake success");
+        Notificationclient.setBufferSizes(BEARSSL_MFLN_SIZE, 512);
+    } else {
+        log_esp3d("Handshake failed");
+        Notificationclient.setBufferSizes(BEARSSL_MFLN_SIZE_FALLBACK, 512);
+    }
 #endif //ARDUINO_ARCH_ESP8266 && !USING_AXTLS
     (void)title;
     if (!Notificationclient.connect(_serveraddress.c_str(), _port)) {
@@ -399,6 +478,12 @@ bool NotificationsService::begin()
         _token2 = Settings_ESP3D::read_string(ESP_NOTIFICATION_TOKEN2);
         _port = PUSHOVERPORT;
         _serveraddress = PUSHOVERSERVER;
+        break;
+    case ESP_TELEGRAM_NOTIFICATION:
+        _token1 = Settings_ESP3D::read_string(ESP_NOTIFICATION_TOKEN1);
+        _token2 = Settings_ESP3D::read_string(ESP_NOTIFICATION_TOKEN2);
+        _port = TELEGRAMPORT;
+        _serveraddress = TELEGRAMSERVER;
         break;
     case ESP_LINE_NOTIFICATION:
         _token1 = Settings_ESP3D::read_string(ESP_NOTIFICATION_TOKEN1);

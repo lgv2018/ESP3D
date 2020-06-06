@@ -3,18 +3,18 @@
 
   Copyright (c) 2014 Luc Lebosse. All rights reserved.
 
-  This library is free software; you can redistribute it and/or
+  This code is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
   License as published by the Free Software Foundation; either
   version 2.1 of the License, or (at your option) any later version.
 
-  This library is distributed in the hope that it will be useful,
+  This code is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
 
   You should have received a copy of the GNU Lesser General Public
-  License along with this library; if not, write to the Free Software
+  License along with This code; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
@@ -162,15 +162,26 @@ bool WiFiConfig::ConnectSTA2AP()
  */
 bool WiFiConfig::StartSTA()
 {
+#if defined (ARDUINO_ARCH_ESP32)
+    esp_wifi_start();
+#endif //ARDUINO_ARCH_ESP32
     //Sanity check
     if((WiFi.getMode() == WIFI_STA) || (WiFi.getMode() == WIFI_AP_STA)) {
-        WiFi.disconnect();
+        if(WiFi.isConnected()) {
+            WiFi.disconnect();
+        } else {
+            WiFi.begin();
+        }
     }
     if((WiFi.getMode() == WIFI_AP) || (WiFi.getMode() == WIFI_AP_STA)) {
         WiFi.softAPdisconnect();
     }
     WiFi.enableAP (false);
+    WiFi.enableSTA (true);
     WiFi.mode(WIFI_STA);
+#if defined (ARDUINO_ARCH_ESP32)
+    esp_wifi_start();
+#endif //ARDUINO_ARCH_ESP32
     //Get parameters for STA
     String SSID = Settings_ESP3D::read_string(ESP_STA_SSID);
     String password = Settings_ESP3D::read_string(ESP_STA_PASSWORD);
@@ -182,16 +193,14 @@ bool WiFiConfig::StartSTA()
         IPAddress ip(IP), mask(MK), gateway(GW);
         WiFi.config(ip, gateway,mask);
     }
-    ESP3DOutput output(ESP_ALL_CLIENTS);
+    ESP3DOutput output(ESP_SERIAL_CLIENT);
     String stmp;
     stmp = "Connecting to '" + SSID + "'";;
     output.printMSG(stmp.c_str());
     if (WiFi.begin(SSID.c_str(), (password.length() > 0)?password.c_str():nullptr)) {
 #if defined (ARDUINO_ARCH_ESP8266)
         WiFi.setSleepMode(WIFI_NONE_SLEEP);
-        if (!WiFi.hostname(NetConfig::hostname(true))) {
-            output.printERROR("Set hostname STA failed");
-        }
+        WiFi.hostname(NetConfig::hostname(true));
 #endif //ARDUINO_ARCH_ESP8266
 #if defined (ARDUINO_ARCH_ESP32)
         WiFi.setSleep(false);
@@ -213,7 +222,9 @@ bool WiFiConfig::StartAP()
     ESP3DOutput output(ESP_ALL_CLIENTS);
     //Sanity check
     if((WiFi.getMode() == WIFI_STA) || (WiFi.getMode() == WIFI_AP_STA)) {
-        WiFi.disconnect();
+        if(WiFi.isConnected()) {
+            WiFi.disconnect();
+        }
     }
     if((WiFi.getMode() == WIFI_AP) || (WiFi.getMode() == WIFI_AP_STA)) {
         WiFi.softAPdisconnect();
@@ -223,10 +234,6 @@ bool WiFiConfig::StartAP()
     //Set Sleep Mode to none
 #if defined (ARDUINO_ARCH_ESP8266)
     WiFi.setSleepMode(WIFI_NONE_SLEEP);
-    //No API for it
-    //if(!WiFi.hostname(NetConfig::hostname(true))){
-    //    output.printERROR("Set hostname AP failed");
-    //}
 #endif //ARDUINO_ARCH_ESP8266
 
     String SSID = Settings_ESP3D::read_string(ESP_AP_SSID);
@@ -256,9 +263,7 @@ bool WiFiConfig::StartAP()
         //must be done after starting AP not before
 #if defined (ARDUINO_ARCH_ESP32)
         WiFi.setSleep(false);
-        if (!WiFi.softAPsetHostname(NetConfig::hostname(true))) {
-            output.printERROR("Set hostname AP failed");
-        }
+        WiFi.softAPsetHostname(NetConfig::hostname(true));
 #endif //ARDUINO_ARCH_ESP32
         return true;
     } else {
@@ -302,14 +307,16 @@ void WiFiConfig::end()
 {
     //Sanity check
     if((WiFi.getMode() == WIFI_STA) || (WiFi.getMode() == WIFI_AP_STA)) {
-        WiFi.disconnect(true);
+        if(WiFi.isConnected()) {
+            WiFi.disconnect(true);
+        }
     }
     if((WiFi.getMode() == WIFI_AP) || (WiFi.getMode() == WIFI_AP_STA)) {
-        WiFi.softAPdisconnect(true);
+        if(WiFi.isConnected()) {
+            WiFi.softAPdisconnect(true);
+        }
     }
     WiFi.mode(WIFI_OFF);
-    ESP3DOutput output(ESP_ALL_CLIENTS);
-    output.printMSG("WiFi Off");
 }
 
 /**
@@ -330,21 +337,21 @@ const char* WiFiConfig::getSleepModeString ()
 {
 #ifdef ARDUINO_ARCH_ESP32
     if (WiFi.getSleep()) {
-        return "Modem";
+        return "modem";
     } else {
-        return "None";
+        return "none";
     }
 #endif //ARDUINO_ARCH_ESP32
 #ifdef ARDUINO_ARCH_ESP8266
     WiFiSleepType_t ps_type = WiFi.getSleepMode();
     if (ps_type == WIFI_NONE_SLEEP) {
-        return "None";
+        return "none";
     } else if (ps_type == WIFI_LIGHT_SLEEP) {
-        return "Light";
+        return "light";
     } else if (ps_type == WIFI_MODEM_SLEEP) {
-        return "Modem";
+        return "modem";
     } else {
-        return "???";
+        return "unknown";
     }
 #endif //ARDUINO_ARCH_ESP8266
 }
@@ -366,7 +373,7 @@ const char* WiFiConfig::getPHYModeString (uint8_t wifimode)
     } else if (PhyMode == (WIFI_PHY_MODE_11N) ) {
         return "11n";
     } else {
-        return "???";
+        return "unknown";
     }
 }
 
@@ -415,7 +422,7 @@ const char * WiFiConfig::AP_Auth_String()
     mode = apconfig.authmode;
 #endif //ARDUINO_ARCH_ESP8266
     if (mode == AUTH_OPEN) {
-        return "None";
+        return "none";
     } else if (mode == AUTH_WEP) {
         return "WEP";
     } else if (mode == AUTH_WPA_PSK) {
@@ -510,7 +517,7 @@ const char * WiFiConfig::getConnectedSTA(uint8_t * totalcount, bool reset)
         while (station) {
             //go next record
             count++;
-            station = STAILQ_NEXT (station,	next);
+            station = STAILQ_NEXT (station, next);
         }
         station = station_tmp;
     }
@@ -520,7 +527,7 @@ const char * WiFiConfig::getConnectedSTA(uint8_t * totalcount, bool reset)
         data += NetConfig::mac2str(station->bssid);
         data += ")";
         current++;
-        station = STAILQ_NEXT (station,	next);
+        station = STAILQ_NEXT (station, next);
         if ((current == count) || !station) {
             wifi_softap_free_station_info();
         }
