@@ -18,15 +18,22 @@ The web interface files are present in data directory but UI has it's own reposi
 * Be aware  ESP3D-WEBUI is for firmware 0.9.99 minimum - previous released version use tpl files which are no more used.
 * Note for ESP8266 1MB flash : FW is now too big will all features you need to chose strip the FW and select only some features, also WebUI is now also too big for full multilanguage support to fit the 128K SPIFFS so please use pack with limited language (en +another) https://github.com/luc-github/ESP3D-WEBUI/tree/2.1/languages
     
-:+1:Thanks
-* to @disneysw for bringing this module idea
-* to @lkarlslund for suggestion about independent reset using GPIO2
-* to Roy Cortes from http://www.panucatt.com for supporting and pushing me implementing great features
-* to all contributors, feedbacks owners and donations.
 
-## Donate
-Every support is welcome: [<img src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG_global.gif" border="0" alt="PayPal – The safer, easier way to pay online.">](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=Y8FFE7NA4LJWQ)    
-Especially because need to buy new ESP modules and devices for developing and testing new features.
+## Sponsors 
+[<img width="200px" src="https://raw.githubusercontent.com/luc-github/ESP3D/3.0/images/sponsors-supporters/FYSETC/LOGO.png">](https://www.fysetc.com/)  
+
+## Supporters
+[<img src="https://raw.githubusercontent.com/luc-github/ESP3D/3.0/images/sponsors-supporters/PanucattDevices/Panucatt.jpg" />](http://www.panucatt.com/)
+
+
+## Become a sponsor or a supporter
+ * A sponsor is a recurent donator [<img src="https://raw.githubusercontent.com/luc-github/ESP3D/3.0/images/sponsors-supporters/sponsor.PNG" />](https://github.com/sponsors/luc-github)   
+ The github sponsors are automaticaly displayed by github, if your tier is `A big hug` or more, to thank you for your support, your logo / avatar will be also added to the readme page with eventually with a link to your site.    
+
+ * A supporter is per time donator [<img src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG_global.gif" border="0" alt="PayPal – The safer, easier way to pay online.">](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=Y8FFE7NA4LJWQ)   
+ If your donation is over a per year sponsor tier `A big hug`, to thank you for your support, your logo / avatar will be added to the readme page with eventually with a link to your site.    
+
+ Every support is welcome, giving support/ developing new features need time and devices, donations contribute a lot to make things happen, thank you.
 
 ## Features
 * Serial/Wifi bridge using configurable port 8888
@@ -67,9 +74,9 @@ Check wiki : https://github.com/luc-github/ESP3D/wiki/Direct-ESP3D-commands
 Feedback on 2.0 was : ESP3D being a library is not really useful and make setup more complex, so now we are back to simple application.   
 
 1. Please follow installation of the ESP core you want to use : [ESP8266 core version](https://github.com/esp8266/Arduino)  or [ESP32 core version](https://github.com/espressif/arduino-esp32)   
-2.  Add manually libraries present in libraries directory -these versions are verified to work with ESP3D, any others (newer version) may cause untested behavior.  
+2.  Add manually libraries present in libraries directory to your arduino libraries directory (no need if you use platformIO) -these versions are verified to work with ESP3D, any others (newer version) may cause untested behavior.  
 
-Use webserver support (recommended as stable):  
+Use webserver support (recommended as stable), asyncwebserver support is no more stable on ESP3D 
 * arduinoWebSockets from @Links2004  
  
 Generic ones:      
@@ -106,7 +113,7 @@ if embedded uploader does not show up you can force it ti display using : http:/
 [Check the wiki](https://github.com/luc-github/ESP3D/wiki)
 
 ## :question:Any question ?   
-Check [Wiki](https://github.com/luc-github/ESP3D/wiki/Install-Instructions) or [![Join the chat at https://gitter.im/luc-github/ESP3D](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/luc-github/ESP3D?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)   
+Check [Wiki](https://github.com/luc-github/ESP3D/wiki/Install-Instructions) or Join the chat at [Discord server](https://discord.gg/Z4ujTwE)   
 
 ## :exclamation:Any issue/feedback ?    
 Check [Wiki](https://github.com/luc-github/ESP3D/wiki/Install-Instructions) and [FAQ](https://github.com/luc-github/ESP3D/issues?utf8=%E2%9C%93&q=label%3AFAQ+) or [submit ticket](https://github.com/luc-github/ESP3D/issues)    
@@ -120,7 +127,14 @@ and https://youtu.be/XoWW0aU6DGE?t=76
 and Wifi boards for 3D printers : https://www.panucatt.com/ProductDetails.asp?ProductCode=WB8266,   
 <h2>:warning: Do not use this repository for boards using custom firmware, you will lose several features.</h2> 
 
-* More to come...
+* More to come...   
+
+## :+1:Thanks
+* to @disneysw for bringing this module idea
+* to @lkarlslund for suggestion about independent reset using GPIO2
+* to Roy Cortes from http://www.panucatt.com for supporting and pushing me implementing great features
+* to all contributors, feedbacks owners and donations.
+
 
 If you use ESP3D on your product, drop me a message so I can link your product page here.   
 

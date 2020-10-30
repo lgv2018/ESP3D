@@ -58,6 +58,14 @@ String COMMAND::buffer_tcp;
 extern uint8_t Checksum(const char * line, uint16_t lineSize);
 extern bool sendLine2Serial (String &  line, int32_t linenb, int32_t* newlinenb);
 
+const char * encodeString(const char * s){
+    static String tmp;
+    tmp = s;
+    while(tmp.indexOf("'")!=-1)tmp.replace("'", "&#39;");
+    while(tmp.indexOf("\"")!=-1)tmp.replace("\"", "&#34;");
+    if (tmp =="") tmp=" ";
+    return tmp.c_str();
+}
 String COMMAND::get_param (String & cmd_params, const char * id, bool withspace)
 {
     static String parameter;
@@ -166,6 +174,7 @@ bool COMMAND::execute_command (int cmd, String cmd_params, tpipe output, level_a
     String parameter;
     LOG ("Execute Command\r\n")
     switch (cmd) {
+
     //STA SSID
     //[ESP100]<SSID>[pwd=<admin password>]
     case 100:
@@ -281,6 +290,7 @@ bool COMMAND::execute_command (int cmd, String cmd_params, tpipe output, level_a
                 }
         }
         break;
+#ifndef USE_AS_UPDATER_ONLY
     //AP SSID
     //[ESP105]<SSID>[pwd=<admin password>]
     case 105:
@@ -354,11 +364,11 @@ bool COMMAND::execute_command (int cmd, String cmd_params, tpipe output, level_a
     //[ESP110]<state>[pwd=<admin password>]
     case 110:
         parameter = get_param (cmd_params, "", true);
-        if (parameter == "on") {
+        if (parameter == "ON") {
             mode = 1;
-        } else if (parameter == "off") {
+        } else if (parameter == "OFF") {
             mode = 0;
-        } else if (parameter == "restart") {
+        } else if (parameter == "RESTART") {
             mode = 2;
         } else {
             ESPCOM::println (INCORRECT_CMD_MSG, output, espresponse);
@@ -843,7 +853,7 @@ bool COMMAND::execute_command (int cmd, String cmd_params, tpipe output, level_a
             if (!CONFIG::read_string (EP_HOSTNAME, sbuf, MAX_HOSTNAME_LENGTH) ) {
                 ESPCOM::print ("???", output, espresponse);
             } else {
-                ESPCOM::print (sbuf, output, espresponse);
+                ESPCOM::print (encodeString(sbuf), output, espresponse);
             }
             ESPCOM::print (F ("\",\"H\":\"Hostname\" ,\"S\":\""), output, espresponse);
             ESPCOM::print ( (const char *) CONFIG::intTostr (MAX_HOSTNAME_LENGTH), output, espresponse);
@@ -871,7 +881,7 @@ bool COMMAND::execute_command (int cmd, String cmd_params, tpipe output, level_a
             if (!CONFIG::read_string (EP_STA_SSID, sbuf, MAX_SSID_LENGTH) ) {
                 ESPCOM::print ("???", output, espresponse);
             } else {
-                ESPCOM::print (sbuf, output, espresponse);
+                ESPCOM::print (encodeString(sbuf), output, espresponse);
             }
             ESPCOM::print (F ("\",\"S\":\""), output, espresponse);
             ESPCOM::print ( (const char *) CONFIG::intTostr (MAX_SSID_LENGTH), output, espresponse);
@@ -969,7 +979,7 @@ bool COMMAND::execute_command (int cmd, String cmd_params, tpipe output, level_a
             if (!CONFIG::read_string (EP_AP_SSID, sbuf, MAX_SSID_LENGTH) ) {
                 ESPCOM::print ("???", output, espresponse);
             } else {
-                ESPCOM::print (sbuf, output, espresponse);
+                ESPCOM::print (encodeString(sbuf), output, espresponse);
             }
             ESPCOM::print (F ("\",\"S\":\""), output, espresponse);
             ESPCOM::print ( (const char *) CONFIG::intTostr (MAX_SSID_LENGTH), output, espresponse);
@@ -1155,7 +1165,7 @@ bool COMMAND::execute_command (int cmd, String cmd_params, tpipe output, level_a
             if (!CONFIG::read_string (EP_TIME_SERVER1, sbuf, MAX_DATA_LENGTH) ) {
                 ESPCOM::print ("???", output, espresponse);
             } else {
-                ESPCOM::print (sbuf, output, espresponse);
+                ESPCOM::print (encodeString(sbuf), output, espresponse);
             }
             ESPCOM::print (F ("\",\"S\":\""), output, espresponse);
             ESPCOM::print ( (const char *) CONFIG::intTostr (MAX_DATA_LENGTH), output, espresponse);
@@ -1171,7 +1181,7 @@ bool COMMAND::execute_command (int cmd, String cmd_params, tpipe output, level_a
             if (!CONFIG::read_string (EP_TIME_SERVER2, sbuf, MAX_DATA_LENGTH) ) {
                 ESPCOM::print ("???", output, espresponse);
             } else {
-                ESPCOM::print (sbuf, output, espresponse);
+                ESPCOM::print (encodeString(sbuf), output, espresponse);
             }
             ESPCOM::print (F ("\",\"S\":\""), output, espresponse);
             ESPCOM::print ( (const char *) CONFIG::intTostr (MAX_DATA_LENGTH), output, espresponse);
@@ -1187,7 +1197,7 @@ bool COMMAND::execute_command (int cmd, String cmd_params, tpipe output, level_a
             if (!CONFIG::read_string (EP_TIME_SERVER3, sbuf, MAX_DATA_LENGTH) ) {
                 ESPCOM::print ("???", output, espresponse);
             } else {
-                ESPCOM::print (sbuf, output, espresponse);
+                ESPCOM::print (encodeString(sbuf), output, espresponse);
             }
             ESPCOM::print (F ("\",\"S\":\""), output, espresponse);
             ESPCOM::print ( (const char *) CONFIG::intTostr (MAX_DATA_LENGTH), output, espresponse);
@@ -1252,7 +1262,7 @@ bool COMMAND::execute_command (int cmd, String cmd_params, tpipe output, level_a
             if (!CONFIG::read_string (ESP_NOTIFICATION_SETTINGS, sbuf, MAX_NOTIFICATION_TOKEN_LENGTH) ) {
                 ESPCOM::print ("???", output, espresponse);
             } else {
-                ESPCOM::print (sbuf, output, espresponse);
+                ESPCOM::print (encodeString(sbuf), output, espresponse);
             }
             ESPCOM::print ( F("\",\"S\":\""), output, espresponse);
             ESPCOM::print ( (const char *) CONFIG::intTostr (MAX_NOTIFICATION_SETTINGS_LENGTH), output, espresponse);
@@ -1511,8 +1521,8 @@ bool COMMAND::execute_command (int cmd, String cmd_params, tpipe output, level_a
                 }
                 if (!plain) {
                     ESPCOM::print (F ("{\"SSID\":\""), output, espresponse);
-                }
-                ESPCOM::print (WiFi.SSID (i).c_str(), output, espresponse);
+                    ESPCOM::print (encodeString(WiFi.SSID (i).c_str()), output, espresponse);
+                } else ESPCOM::print (WiFi.SSID (i).c_str(), output, espresponse);
                 if (!plain) {
                     ESPCOM::print (F ("\",\"SIGNAL\":\""), output, espresponse);
                 } else {
@@ -1554,6 +1564,7 @@ bool COMMAND::execute_command (int cmd, String cmd_params, tpipe output, level_a
         }
     }
     break;
+#endif //USE_AS_UPDATER_ONLY
     //Get ESP current status in plain or JSON
     //[ESP420]<plain>
     case 420: {
@@ -1588,6 +1599,7 @@ bool COMMAND::execute_command (int cmd, String cmd_params, tpipe output, level_a
             }
         }
         break;
+#ifndef USE_AS_UPDATER_ONLY
     //[ESP500]<gcode>
     case 500: { //send GCode with check sum caching right line numbering
         //be sure serial is locked
@@ -1872,6 +1884,7 @@ bool COMMAND::execute_command (int cmd, String cmd_params, tpipe output, level_a
         ESPCOM::println (CONFIG::formatBytes (SPIFFS.usedBytes() ).c_str(), output, espresponse);
 #endif
         break;
+#endif //USE_AS_UPDATER_ONLY
     //get fw version firmare target and fw version
     //[ESP800]<header answer>
     case 800: {
@@ -1945,6 +1958,7 @@ bool COMMAND::execute_command (int cmd, String cmd_params, tpipe output, level_a
         ESPCOM::println ("", output, espresponse);
     }
     break;
+#ifndef USE_AS_UPDATER_ONLY
     //get fw target
     //[ESP801]<header answer>
     case 801:
@@ -1985,7 +1999,7 @@ bool COMMAND::execute_command (int cmd, String cmd_params, tpipe output, level_a
             }
         }
         break;
-
+#endif //USE_AS_UPDATER_ONLY
     default:
         ESPCOM::println (INCORRECT_CMD_MSG, output, espresponse);
         response = false;
